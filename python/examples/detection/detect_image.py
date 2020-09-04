@@ -53,12 +53,16 @@ def load_labels(path, encoding='utf-8'):
 
 
 def make_interpreter( model_file, use_edgetpu ):
-  model_file, *device = model_file.split('@')
-  delegates = [tflite.load_delegate( EDGETPU_SHARED_LIB, {'device': device[0]} if device else {} )] if use_edgetpu else []
-  print( "Using Edge TPU" if use_edgetpu else "Not using Edge TPU - running on local CPU." )
-  return tflite.Interpreter(
-      model_path=model_file,
-      experimental_delegates=delegates)
+  try:
+    model_file, *device = model_file.split('@')
+    delegates = [tflite.load_delegate( EDGETPU_SHARED_LIB, {'device': device[0]} if device else {} )] if use_edgetpu else []
+    print( "Using Edge TPU" if use_edgetpu else "Not using Edge TPU - running on local CPU." )
+    return tflite.Interpreter(
+        model_path=model_file,
+        experimental_delegates=delegates)
+  except ValueError as ex:
+    description = str( ex ).replace( "\n", "" )
+    print( f"⚠️  Unable to initialize interpreter ({description}). Is the Edge TPU connected?\n\n")
 
 
 def draw_objects(draw, objs, labels):
